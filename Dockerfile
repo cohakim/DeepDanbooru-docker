@@ -15,4 +15,5 @@ WORKDIR /DeepDanbooru
 
 RUN pip install -r requirements.txt
 RUN pip install 'tensorflow'
+RUN pip install 'pyyaml'
 RUN pip install .

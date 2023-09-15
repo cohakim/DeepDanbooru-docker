@@ -4,6 +4,7 @@ x-default: &DEFAULT
   build: .
   image: cohakim/deepdanbooru:latest
   volumes:
+    - ./src:/src
     - ./projects:/projects
     - ./training_data:/training_data
 
@@ -53,4 +54,11 @@ services:
       /bin/bash -c "
         cd /training_data/$${TARGET} && cat *.txt | tr ',' '\\n' | sort | uniq -c | sort -nr
       "
-
+  export:
+    <<: *DEFAULT
+    environment:
+      - TARGET=$TARGET
+    entrypoint: |
+      /bin/sh -c "
+        python /src/export.py
+      "
