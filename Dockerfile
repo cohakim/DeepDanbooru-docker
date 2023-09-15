@@ -6,7 +6,7 @@ RUN ln -snf /usr/share/zoneinfo/$TZ /etc/localtime && echo $TZ > /etc/timezone
 
 RUN apt-get update
 RUN apt-get install -yq --no-install-recommends \
-      ca-certificates curl git unzip \
+      ca-certificates curl git unzip yq \
     && pip install --upgrade pip
 
 RUN git clone https://github.com/KichangKim/DeepDanbooru.git
