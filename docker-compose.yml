@@ -44,7 +44,7 @@ services:
       /bin/sh -c "
         deepdanbooru evaluate /training_data/$${TARGET_DIR} --project-path /projects/pretrained_model --allow-folder --save-txt
       "
-  # tags セクションを作るコマンドに作り変える（カテゴリ化、日本語の補足）
+  # TODO: tags セクションを作るコマンドに作り変える（カテゴリ化、日本語の補足、ソート）
   word_count:
     <<: *DEFAULT
     environment:
@@ -53,8 +53,7 @@ services:
       /bin/bash -c "
         cd /training_data/$${TARGET_DIR} && cat *.txt | tr ',' '\\n' | sort | uniq -c | sort -nr
       "
-  # 階層が消えた
-  # なんで階層いる？ => define した tag を削除するため
+  # 不要が確認されたら削除する
   resources:
     <<: *DEFAULT
     environment:
@@ -69,6 +68,7 @@ services:
           echo \"$${hash}: $(dirname $${path})\"
         done
       "
+  # 不要が確認されたら削除する
   evaluations:
     <<: *DEFAULT
     environment:
