@@ -25,10 +25,10 @@ services:
   rename:
     <<: *DEFAULT
     environment:
-      - TARGET_DIR=$TARGET_DIR
+      - TARGET=$TARGET
     entrypoint: |
       /bin/sh -c "
-        cd /training_data/$${TARGET_DIR} && find . -name '*.jpg' | xargs md5sum | while read file
+        cd /training_data/$${TARGET} && find . -name '*.jpg' | xargs md5sum | while read file
         do
           hash=$(echo $${file} | awk '{print $1}')
           path=$(echo $${file} | awk '{print $2}')
@@ -39,48 +39,18 @@ services:
   evaluate:
     <<: *DEFAULT
     environment:
-      - TARGET_DIR=$TARGET_DIR
+      - TARGET=$TARGET
     entrypoint: |
       /bin/sh -c "
-        deepdanbooru evaluate /training_data/$${TARGET_DIR} --project-path /projects/pretrained_model --allow-folder --save-txt
+        deepdanbooru evaluate /training_data/$${TARGET} --project-path /projects/pretrained_model --allow-folder --save-txt
       "
   # TODO: tags セクションを作るコマンドに作り変える（カテゴリ化、日本語の補足、ソート）
   word_count:
     <<: *DEFAULT
     environment:
-      - TARGET_DIR=$TARGET_DIR
+      - TARGET=$TARGET
     entrypoint: |
       /bin/bash -c "
-        cd /training_data/$${TARGET_DIR} && cat *.txt | tr ',' '\\n' | sort | uniq -c | sort -nr
+        cd /training_data/$${TARGET} && cat *.txt | tr ',' '\\n' | sort | uniq -c | sort -nr
       "
-  # 不要が確認されたら削除する
-  resources:
-    <<: *DEFAULT
-    environment:
-      - TARGET_DIR=$TARGET_DIR
-    entrypoint: |
-      /bin/sh -c "
-        cd /training_data/$${TARGET_DIR} && find . -name '*.jpg' -printf '%P\\n' | while read file
-        do
-          res=$(md5sum $${file})
-          hash=$(echo $${res} | awk '{print $1}')
-          path=$(echo $${res} | awk '{print $2}')
-          echo \"$${hash}: $(dirname $${path})\"
-        done
-      "
-  # 不要が確認されたら削除する
-  evaluations:
-    <<: *DEFAULT
-    environment:
-      - TARGET_DIR=$TARGET_DIR
-    entrypoint: |
-      /bin/sh -c "
-        cd /training_data/$${TARGET_DIR} && find . -name '*.jpg' | xargs md5sum | while read file
-        do
-          hash=$(echo $${file} | awk '{print $1}')
-          path=$(echo $${file} | awk '{print $2}')
-          dirname=$(dirname $${path})
-          tags=$(cat $${dirname}/$${hash}.txt)
-          echo \"$${hash}: $${tags}\"
-        done
-      "
+
