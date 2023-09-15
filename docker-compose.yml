@@ -19,13 +19,68 @@ services:
         echo "$${CHECKSUMS}" | sha256sum -c -
         if [ $? -gt 0 ]; then
           curl -L --output /projects/pretrained_model.zip $${PRETRAINED_MODEL_URL}
-          echo "$${CHECKSUMS}" | sha256sum -c -
           unzip -q /projects/pretrained_model.zip -d /projects/pretrained_model
         fi
       "
-  evaluate:
+  rename:
     <<: *DEFAULT
+    environment:
+      - TARGET_DIR=$TARGET_DIR
     entrypoint: |
       /bin/sh -c "
-        deepdanbooru evaluate /training_data --project-path /projects/pretrained_model --allow-folder --save-txt
+        cd /training_data/$${TARGET_DIR} && find . -name '*.jpg' | xargs md5sum | while read file
+        do
+          hash=$(echo $${file} | awk '{print $1}')
+          path=$(echo $${file} | awk '{print $2}')
+          dirname=$(dirname $${path})
+          echo mv $${path} $${dirname}/$${hash}.$${path##*.}
+        done
+      "
+  evaluate:
+    <<: *DEFAULT
+    environment:
+      - TARGET_DIR=$TARGET_DIR
+    entrypoint: |
+      /bin/sh -c "
+        deepdanbooru evaluate /training_data/$${TARGET_DIR} --project-path /projects/pretrained_model --allow-folder --save-txt
+      "
+  # tags セクションを作るコマンドに作り変える（カテゴリ化、日本語の補足）
+  word_count:
+    <<: *DEFAULT
+    environment:
+      - TARGET_DIR=$TARGET_DIR
+    entrypoint: |
+      /bin/bash -c "
+        cd /training_data/$${TARGET_DIR} && cat *.txt | tr ',' '\\n' | sort | uniq -c | sort -nr
+      "
+  # 階層が消えた
+  # なんで階層いる？ => define した tag を削除するため
+  resources:
+    <<: *DEFAULT
+    environment:
+      - TARGET_DIR=$TARGET_DIR
+    entrypoint: |
+      /bin/sh -c "
+        cd /training_data/$${TARGET_DIR} && find . -name '*.jpg' -printf '%P\\n' | while read file
+        do
+          res=$(md5sum $${file})
+          hash=$(echo $${res} | awk '{print $1}')
+          path=$(echo $${res} | awk '{print $2}')
+          echo \"$${hash}: $(dirname $${path})\"
+        done
+      "
+  evaluations:
+    <<: *DEFAULT
+    environment:
+      - TARGET_DIR=$TARGET_DIR
+    entrypoint: |
+      /bin/sh -c "
+        cd /training_data/$${TARGET_DIR} && find . -name '*.jpg' | xargs md5sum | while read file
+        do
+          hash=$(echo $${file} | awk '{print $1}')
+          path=$(echo $${file} | awk '{print $2}')
+          dirname=$(dirname $${path})
+          tags=$(cat $${dirname}/$${hash}.txt)
+          echo \"$${hash}: $${tags}\"
+        done
       "
