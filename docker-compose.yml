@@ -6,7 +6,7 @@ x-default: &DEFAULT
   volumes:
     - ./src:/src
     - ./projects:/projects
-    - ./training_data:/training_data
+    - ./dataset:/dataset
 
 services:
   download:
@@ -29,7 +29,7 @@ services:
       - TARGET=$TARGET
     entrypoint: |
       /bin/sh -c "
-        cd /training_data/$${TARGET} && find . -name '*.jpg' | xargs md5sum | while read file
+        cd /dataset/$${TARGET} && find . -name '*.jpg' | xargs md5sum | while read file
         do
           hash=$(echo $${file} | awk '{print $1}')
           path=$(echo $${file} | awk '{print $2}')
@@ -43,7 +43,7 @@ services:
       - TARGET=$TARGET
     entrypoint: |
       /bin/sh -c "
-        deepdanbooru evaluate /training_data/$${TARGET} --project-path /projects/pretrained_model --allow-folder --save-txt
+        deepdanbooru evaluate /dataset/$${TARGET} --project-path /projects/pretrained_model --allow-folder --save-txt
       "
   # TODO: tags セクションを作るコマンドに作り変える（カテゴリ化、日本語の補足、ソート）
   word_count:
@@ -52,7 +52,7 @@ services:
       - TARGET=$TARGET
     entrypoint: |
       /bin/bash -c "
-        cd /training_data/$${TARGET} && cat *.txt | tr ',' '\\n' | sort | uniq -c | sort -nr
+        cd /dataset/$${TARGET} && cat *.txt | tr ',' '\\n' | sort | uniq -c | sort -nr
       "
   export:
     <<: *DEFAULT

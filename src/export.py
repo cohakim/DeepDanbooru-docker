@@ -5,7 +5,7 @@ import util
 
 # md5: <tags> を出す
 target = os.environ['TARGET']
-root_dir = os.path.join('/', 'training_data', target)
+root_dir = os.path.join('/', 'dataset', target)
 
 # キャラクター定義を読み込む
 definition = None
@@ -43,4 +43,3 @@ for file in files:
   key = os.path.splitext(file.replace(f'{root_dir}/', ''))[0]
   value = ', '.join(caption)
   print(f'{key}: {value}')
-
