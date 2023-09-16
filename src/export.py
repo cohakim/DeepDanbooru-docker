@@ -9,7 +9,7 @@ root_dir = os.path.join('/', 'dataset', target)
 
 # キャラクター定義を読み込む
 definition = None
-with open(f'{root_dir}/definitions.yml') as file:
+with open(f'{root_dir}/definition.yml') as file:
   definition = yaml.safe_load(file)
 
 # Danbooru評価タグファイルの一覧を取得
