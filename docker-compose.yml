@@ -1,0 +1,64 @@
+version: '3'
+
+x-default: &DEFAULT
+  build: .
+  image: cohakim/deepdanbooru:latest
+  volumes:
+    - ./src:/src
+    - ./projects:/projects
+    - ./dataset:/dataset
+
+services:
+  download:
+    <<: *DEFAULT
+    environment:
+      PRETRAINED_MODEL_URL: https://github.com/KichangKim/DeepDanbooru/releases/download/v3-20211112-sgd-e28/deepdanbooru-v3-20211112-sgd-e28.zip
+      CHECKSUMS: |
+        106e9f1a36fea06af53bc419ffaa50e17123bd67c605916fe50cdcecb8a424bf  /projects/pretrained_model.zip
+    entrypoint: |
+      /bin/sh -c "
+        echo "$${CHECKSUMS}" | sha256sum -c -
+        if [ $? -gt 0 ]; then
+          curl -L --output /projects/pretrained_model.zip $${PRETRAINED_MODEL_URL}
+          unzip -q /projects/pretrained_model.zip -d /projects/pretrained_model
+        fi
+      "
+  rename:
+    <<: *DEFAULT
+    environment:
+      - TARGET=$TARGET
+    entrypoint: |
+      /bin/sh -c "
+        cd /dataset/$${TARGET} && find . -name '*.jpg' | xargs md5sum | while read file
+        do
+          hash=$(echo $${file} | awk '{print $1}')
+          path=$(echo $${file} | awk '{print $2}')
+          dirname=$(dirname $${path})
+          echo mv $${path} $${dirname}/$${hash}.$${path##*.}
+        done
+      "
+  evaluate:
+    <<: *DEFAULT
+    environment:
+      - TARGET=$TARGET
+    entrypoint: |
+      /bin/sh -c "
+        deepdanbooru evaluate /dataset/$${TARGET} --project-path /projects/pretrained_model --allow-folder --save-txt
+      "
+  # TODO: tags セクションを作るコマンドに作り変える（カテゴリ化、日本語の補足、ソート）
+  word_count:
+    <<: *DEFAULT
+    environment:
+      - TARGET=$TARGET
+    entrypoint: |
+      /bin/bash -c "
+        cd /dataset/$${TARGET} && cat *.txt | tr ',' '\\n' | sort | uniq -c | sort -nr
+      "
+  export:
+    <<: *DEFAULT
+    environment:
+      - TARGET=$TARGET
+    entrypoint: |
+      /bin/sh -c "
+        python /src/export.py
+      "
