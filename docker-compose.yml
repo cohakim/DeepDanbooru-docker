@@ -26,7 +26,7 @@ services:
   rename:
     <<: *DEFAULT
     environment:
-      - TARGET=$TARGET
+      TARGET:
     entrypoint: |
       /bin/sh -c "
         cd /dataset/$${TARGET} && find . -name '*.jpg' | xargs md5sum | while read file
@@ -40,7 +40,7 @@ services:
   evaluate:
     <<: *DEFAULT
     environment:
-      - TARGET=$TARGET
+      TARGET:
     entrypoint: |
       /bin/sh -c "
         deepdanbooru evaluate /dataset/$${TARGET} --project-path /projects/pretrained_model --allow-folder --save-txt
@@ -49,7 +49,7 @@ services:
   word_count:
     <<: *DEFAULT
     environment:
-      - TARGET=$TARGET
+      TARGET: "${TARGET:-TARGET}"
     entrypoint: |
       /bin/bash -c "
         cd /dataset/$${TARGET} && cat *.txt | tr ',' '\\n' | sort | uniq -c | sort -nr
@@ -57,7 +57,7 @@ services:
   export:
     <<: *DEFAULT
     environment:
-      - TARGET=$TARGET
+      TARGET: "${TARGET:-TARGET}"
     entrypoint: |
       /bin/sh -c "
         python /src/export.py

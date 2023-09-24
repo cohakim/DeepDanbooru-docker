@@ -1,6 +1,8 @@
 # TODO
 
-- export task で md5 出力
-- rename時にログを残す
-- ファイル名とmd5が一致したらリネームしない
+- assets の md5 データベース
+- assets の tag データベース
+- assets からキャラクターのフレームを抽出
+  - タグベースで
+- dataset の背景透過
 - ブラウザによる画像とタグのバンドル編集
